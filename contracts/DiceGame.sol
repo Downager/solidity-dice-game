@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.7;
 
-contract DiceGame {
+import "@chainlink/contracts/src/v0.8/vrf/VRFV2WrapperConsumerBase.sol";
+import "@chainlink/contracts/src/v0.8/shared/interfaces/LinkTokenInterface.sol";
+
+contract DiceGame is VRFV2WrapperConsumerBase {
     struct Player {
         uint8[4] diceRolls;
         uint8 score;
@@ -18,6 +21,10 @@ contract DiceGame {
     uint256 public endBlock;
     bool public gameStarted;
 
+    bytes32 internal keyHash;
+    uint256 internal fee;
+    mapping(uint256 => address) private rollRequests;
+
     event GameStarted(uint256 startBlock, uint256 endBlock);
     event PlayerJoined(address player);
     event GameEnded(address winner);
@@ -25,7 +32,12 @@ contract DiceGame {
     event DealerWithdraw(uint256 amount);
     event DepositReceived(address from, uint256 amount);
 
-    constructor() {
+    constructor(
+        address _linkAddress,
+        address _wrapperAddress
+    )
+        VRFV2WrapperConsumerBase(_linkAddress, _wrapperAddress)
+    {
         dealer = msg.sender;
     }
 
@@ -74,19 +86,21 @@ contract DiceGame {
     }
 
     // Generate dice roll results for a player
-    // FIXME: Shoule be replaced with a more secure random number generator, such as Chainlink VRF
     function rollDiceFor(address playerAddress) internal {
+        uint256 requestId = requestRandomness(200000, 3, 4);  // 假設請求 4 個隨機字
+        rollRequests[requestId] = playerAddress;
+    }
+
+
+    function fulfillRandomWords(
+        uint256 requestId,
+        uint256[] memory randomWords
+    ) internal override {
+        address playerAddress = rollRequests[requestId];
         uint8[4] memory diceRolls;
 
         for (uint8 i = 0; i < diceRolls.length; i++) {
-            // Randomly generate dice roll number, range 1 to 6
-            diceRolls[i] = uint8(
-                (uint256(
-                    keccak256(
-                        abi.encodePacked(block.timestamp, playerAddress, i)
-                    )
-                ) % 6) + 1
-            );
+            diceRolls[i] = uint8((randomWords[i] % 6) + 1);
         }
         uint8 score = calculateScore(diceRolls);
         // if score is 0, re-roll the dices
@@ -94,8 +108,8 @@ contract DiceGame {
             // FIXME: Recursive call may cause stack too deep / Out of gas error
             rollDiceFor(playerAddress);
         } else {
-            players[playerAddress].score = score;
             players[playerAddress].diceRolls = diceRolls;
+            players[playerAddress].score = score;
             emit DiceRolled(playerAddress, diceRolls, score);
         }
     }
