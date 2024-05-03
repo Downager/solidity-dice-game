@@ -81,7 +81,6 @@ contract DiceGame is VRFV2WrapperConsumerBase {
         stakes[msg.sender] = msg.value;
         totalStakes += msg.value;
         emit PlayerJoined(msg.sender);
-
         rollDiceFor(msg.sender); // Generate dice roll results for the player
     }
 
