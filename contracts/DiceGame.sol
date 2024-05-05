@@ -7,6 +7,7 @@ contract DiceGame {
         address playerAddress;
         uint256 stake;
         uint256 payout;
+        uint8[4][] diceHistory;
         uint8[4] diceRolls;
         uint8 score;
     }
@@ -76,6 +77,7 @@ contract DiceGame {
             playerAddress: dealer,
             stake: 0,
             payout: 0,
+            diceHistory: new uint8[4][](0),
             diceRolls: [0, 0, 0, 0],
             score: 0
         });
@@ -85,7 +87,7 @@ contract DiceGame {
     function joinGame() checkState(State.Started, "Game has not started.") external payable withinGamePeriod {
         require(msg.sender != dealer, "Dealer cannot join the game.");
         require(
-            players[msg.sender].diceRolls.length != 0,
+            players[msg.sender].stake == 0,
             "Player already joined."
         );
         require(
@@ -99,6 +101,7 @@ contract DiceGame {
             playerAddress: msg.sender,
             stake: msg.value,
             payout: 0,
+            diceHistory: new uint8[4][](0),
             diceRolls: [0, 0, 0, 0],
             score: 0
         });
@@ -138,6 +141,7 @@ contract DiceGame {
         uint8 score = calculateScore(diceRolls);
         // if score is 0, re-roll the dices
         if (score == 0) {
+            players[playerAddress].diceHistory.push(diceRolls);
             _rollDiceFor(playerAddress, counter); // Recursive call with incremented counter
         } else {
             players[playerAddress].score = score;
@@ -190,10 +194,11 @@ contract DiceGame {
         }
 
         // update gamePlayers
-        for (uint i = 0; i < playerAddresses.length; i++) {
-            gamePlayers[i] = players[playerAddresses[i]];
-        }
+        delete gamePlayers;
         gamePlayers.push(players[dealer]);
+        for (uint i = 0; i < playerAddresses.length; i++) {
+            gamePlayers.push(players[playerAddresses[i]]);
+        }
 
         // Calculate and finalize payouts
         finalizePayout();
