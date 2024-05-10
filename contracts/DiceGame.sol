@@ -164,12 +164,11 @@ contract DiceGame {
         // Decide payouts by comparing scores between the dealer and each player
         uint8 dealerScore = players[dealer].score;
 
-        // if dice score is 3 (BG) or more than 12 (十八/一色)
-        // no need to roll dice for players
-        if (dealerScore <= 3 || dealerScore >= 12) {
+        // If dealer's score is 3(BG) or 255(一色), no need to roll dice for players.
+        if (dealerScore <= 3 || dealerScore == 255) {
             for (uint i = 0; i < playerAddresses.length; i++) {
                 players[playerAddresses[i]].payout = 
-                    dealerScore >= 12 ? 0 : players[playerAddresses[i]].stake * 2;
+                    dealerScore == 255 ? 0 : players[playerAddresses[i]].stake * 2;
             }
         }
         else {
