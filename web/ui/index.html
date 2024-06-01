@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>區塊鏈西巴島阿</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@4.8.0/dist/web3.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ganache@7.9.2/dist/web/ganache.min.js"></script>
+    <script src="https://unpkg.com/vue@3"></script>
+    <link href="style.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="rolling-dice" v-cloak>
+        <dice-cube></dice-cube>
+        <dice-cube></dice-cube>
+        <dice-cube></dice-cube>
+        <dice-cube></dice-cube>
+    </div>    
+    <div id="app" v-cloak>
+        <div v-show="busy" class="overlay">
+            <div class="loader">
+            </div>
+        </div>
+        <div class=banner>
+            <div class=title>區塊鏈西巴島阿</div>
+            <div class="contract">
+                <div>
+                    合約地址：<span class="mono">{{contractAddress.toLowerCase()}}</span>
+                </div>
+                <div>
+                    莊家帳號：<span class="mono">{{dealerAddress.toLowerCase()}}</span>
+                </div>
+            </div>
+        </div>
+        <div class="player-account">
+            玩者帳號：<span class="mono">{{userAddress.toLowerCase()}}</span>
+        </div>
+        <div v-show="!contractAddress && !dealerAddress" class="op-zone">
+            <div class="hdr">合約部署</div>
+            <button @click="deployContract()">部署合約</button>
+        </div>
+        <div v-show="userAddress == dealerAddress" class="op-zone">
+            <div class="hdr">
+                莊家操作
+                <span v-show="ganacheMode" class="ganache"><img src="imgs/ganache.svg" style="width: 20px" /> Ganache</span>
+            </div>
+            <input type="number" v-model="depositAmount" placeholder="儲值金額" min="0.1" max="1" step="0.1">
+            <button @click="deposit()">儲值</button>
+            <button @click="startGame()" v-show="!gameStarted">開始遊戲</button>
+            <button @click="endGame()" v-show="gameStarted">結束遊戲</button>
+            餘額：<span class="balance">{{contractBalance}}</span> ETH
+        </div>
+        <div v-show="gameStarted && accounts.length" class="op-zone">
+            <div class="hdr">玩家操作</div>
+            <select v-model="playerAddress">
+                <option v-for="address in accounts" :value="address" style="font-family: monospace">
+                    {{address.toLowerCase().substr(0, 10)}}</option>
+            </select>
+            <input type="number" v-model="betAmount" placeholder="下注金額" min="0.001" max="0.01" step="0.001">
+            <button @click="joinGame()">下注</button>
+        </div>
+        <div>
+            <div class="error">{{errorMessage}}</div>
+        </div>
+        <div>
+            <button @click="queryHistory()">重新查詢</button>
+            <select v-model="currGameNumber">
+                <option v-for="game in gameList" :value="game.number">{{game.label}}</option>
+            </select>
+        </div>
+        <div>
+            <table>
+                <thead>
+                    <tr>
+                        <td style="width: 100px">局別</td>
+                        <td style="width: 100px">區塊編號</td>
+                        <td style="width: 150px">時間</td>
+                        <td style="width: 450px">事件</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="(log, idx) in filteredGameLogs">
+                        <td v-if="log.gameNumber == '*' || log.rowSpan" :rowspan="log.rowSpan" class="aln-c"
+                            :class="{ 'alt': log.gameCount % 2 == 0 }">{{log.gameNumber}}</td>
+                        <td class="aln-c">{{log.blockNumber}}</td>
+                        <td class="aln-c">{{log.timeStamp}}</td>
+                        <td>
+                            <div v-for="event in log.eventLogHtmls" v-html="event" class="event">
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>

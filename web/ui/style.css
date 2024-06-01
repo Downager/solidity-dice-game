@@ -1,0 +1,392 @@
+table {
+    margin-top: 12px;
+    border-collapse: collapse;
+    width: 800px;
+    font-size: 11pt;
+
+    thead td {
+        background-color: #ddd;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    tr {
+        min-height: 25px;
+    }
+
+    th,
+    td {
+        border: 1px solid black;
+        padding: 5px;
+
+        &.W {
+            color: red;
+        }
+
+        &.L {
+            color: green;
+        }
+
+        &.alt {
+            background-color: #ddd;
+        }
+    }
+}
+
+[v-cloak] {
+    display: none;
+}
+
+.dealer {
+    background-color: lightblue;
+}
+
+.dice {
+
+    &.invalid {
+        opacity: 0.35;
+    }
+
+    &.valid {
+        margin-top: 4px;
+    }
+
+    span {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        margin-right: 2px;
+    }
+
+    .p1 {
+        background-image: url('imgs/dice1.svg');
+    }
+
+    .p2 {
+        background-image: url('imgs/dice2.svg');
+    }
+
+    .p3 {
+        background-image: url('imgs/dice3.svg');
+    }
+
+    .p4 {
+        background-image: url('imgs/dice4.svg');
+    }
+
+    .p5 {
+        background-image: url('imgs/dice5.svg');
+    }
+
+    .p6 {
+        background-image: url('imgs/dice6.svg');
+    }
+
+}
+
+.address {
+    text-decoration: underline;
+    color: dodgerblue;
+    font-family: monospace;
+}
+
+.aln-c {
+    text-align: center;
+}
+
+.op-zone {
+    width: 800px;
+    margin: 10px 0;
+    padding: 6px;
+    background-color: #eee;
+
+    .hdr {
+        font-weight: bold;
+        font-size: 12.5pt;
+        margin-bottom: 6px;
+    }
+}
+
+input[type=number] {
+    margin-right: 3px;
+    height: 24px;
+    box-sizing: border-box;
+}
+
+button,
+select {
+    height: 24px;
+    margin-right: 3px;
+    box-sizing: border-box;
+    vertical-align: middle;
+}
+
+.error {
+    color: red;
+    font-weight: bold;
+}
+
+span.ganache {
+    margin-left: 12px;
+    font-family: Tahoma;
+    font-weight: normal;
+    img {
+        vertical-align: middle;
+    }
+}
+
+div.event {
+    position:  relative;
+    span.score {
+        display: inline-block;
+        width: 40px;
+        text-align: right;
+        padding: 2px 4px;
+        &.invalid {
+            display: none;
+        }
+    }
+
+
+
+    span.ko {
+        background-color: red;
+    }
+
+    span.over {
+        background-color: black;
+    }
+
+    span.result, span.total, span.tag {
+        position: absolute;
+        display: inline-block;
+        width: 40px;
+        right: 3px;
+        top: 3px;
+        padding: 0 4px;
+        box-sizing: border-box;
+        font-weight: bold;
+        text-align: center;
+        border-radius: 2px;        
+    }
+
+    span.tag {
+        color: white;
+        border-radius: 4px;
+        right: 50px;
+        opacity: 0.8;
+    }
+
+    span.result {
+        border: 1px solid #666;
+
+    }
+
+    span.win {
+        color: red;
+    }
+
+    span.lose {
+        color: green;
+    }
+
+    span.tie {
+        color: blue;
+    }
+
+    span.total {
+        color: white;
+        text-shadow: 1px 1px 1px black;
+    }
+
+    span.total.win {
+        background-color: brown;
+    }
+
+    span.total.lose {
+        background-color: darkgreen;
+    }
+
+    span.win-lose-amt {
+        font-weight: bold;
+    }
+}
+
+.banner {
+    background-image: url('imgs/DiceIsland.png');
+    background-repeat: no-repeat;
+    height: 150px;
+    width: 800px;
+    box-sizing: border-box;
+    background-color: #3BBAF2;
+    color: #eee;
+    text-shadow: 1px 1px 1px #222;
+    position: relative;
+
+    .title {
+        text-align: right;
+        padding-top: 6px;
+        padding-right: 30px;
+        font-size: 36pt;
+        font-weight: bolder;
+    }
+
+    .contract {
+        margin-top: 12px;
+        font-size: 13pt;
+        padding-left: 340px;
+        color: yellow;
+    }
+}
+
+span.mono {
+    font-family: monospace;
+    font-size: 11pt;
+}
+.player-account {
+    padding: 6px 0;
+}
+
+#app {
+    position: relative;
+
+    .overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.8);
+        z-index: 1000;
+
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 2s linear infinite;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            margin-top: -60px;
+            margin-left: -60px;
+        }
+    }
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+[v-cloak] {
+    display: none;
+}
+
+.rolling-dice {
+    position: absolute;
+    top: 30px;
+    left: 240px;
+    z-index: 999;
+}
+
+:root {
+    --dice-size: 30px;
+    --dice-bg-size: calc(var(--dice-size) * 1.28);
+    --trans-z-face: calc(var(--dice-size) / 2);
+    --trans-z-show: calc(var(--trans-z-face) * -1);
+}
+
+.dice-cube {
+
+    * {
+        box-sizing: border-box;
+    }
+
+    display: inline-block;
+    width: var(--dice-size);
+    height: var(--dice-size);
+    border: 1px solid #CCC;
+    margin: 5px;
+    perspective: calc(var(--dice-size) * 4);
+
+    .cube {
+        width: var(--dice-size);
+        height: var(--dice-size);
+        position: relative;
+        transform-style: preserve-3d;
+        transform: translateZ(var(--trans-z-show));
+        transition: transform 2.5s;
+    }
+
+    .cube.show-front {
+        transform: translateZ(var(--trans-z-show)) rotateY(0deg);
+    }
+
+    .cube.show-right {
+        transform: translateZ(var(--trans-z-show)) rotateY(-90deg);
+    }
+
+    .cube.show-back {
+        transform: translateZ(var(--trans-z-show)) rotateY(-180deg);
+    }
+
+    .cube.show-left {
+        transform: translateZ(var(--trans-z-show)) rotateY(90deg);
+    }
+
+    .cube.show-top {
+        transform: translateZ(var(--trans-z-show)) rotateX(-90deg);
+    }
+
+    .cube.show-bottom {
+        transform: translateZ(var(--trans-z-show)) rotateX(90deg);
+    }
+
+    .cube__face {
+        position: absolute;
+        width: var(--dice-size);
+        height: var(--dice-size);
+        border: 1px solid #444;
+        line-height: var(--dice-size);
+        background-color: white;
+        background-position: center;
+        background-size: var(--dice-bg-size);
+    }
+
+    .cube__face--front {
+        transform: rotateY(0deg) translateZ(var(--trans-z-face));
+        background-image: url(imgs/dice1.svg);
+    }
+
+    .cube__face--right {
+        transform: rotateY(90deg) translateZ(var(--trans-z-face));
+        background-image: url(imgs/dice5.svg);
+    }
+
+    .cube__face--back {
+        transform: rotateY(180deg) translateZ(var(--trans-z-face));
+        background-image: url(imgs/dice6.svg);
+    }
+
+    .cube__face--left {
+        transform: rotateY(-90deg) translateZ(var(--trans-z-face));
+        background-image: url(imgs/dice2.svg);
+    }
+
+    .cube__face--top {
+        transform: rotateX(90deg) translateZ(var(--trans-z-face));
+        background-image: url(imgs/dice4.svg);
+    }
+
+    .cube__face--bottom {
+        transform: rotateX(-90deg) translateZ(var(--trans-z-face));
+        background-image: url(imgs/dice3.svg);
+    }
+}
