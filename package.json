@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@chainlink/contracts": "^1.1.1",
     "fs": "^0.0.1-security",
     "solc": "^0.8.25"
   }

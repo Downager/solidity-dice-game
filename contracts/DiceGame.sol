@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity 0.8.25;
 
-contract DiceGame {
+import {VRFConsumerBaseV2Plus} from "@chainlink/contracts@1.1.1/src/v0.8/vrf/dev/VRFConsumerBaseV2Plus.sol";
+import {VRFV2PlusClient} from "@chainlink/contracts@1.1.1/src/v0.8/vrf/dev/libraries/VRFV2PlusClient.sol";
+
+contract DiceGame is VRFConsumerBaseV2Plus {
     struct Player {
         uint256 joinTime;
         address playerAddress;
@@ -21,14 +24,28 @@ contract DiceGame {
     uint256 public endBlock;
     Player[] public gamePlayers;
 
+    uint256 private constant ROLL_IN_PROGRESS = 42;
+
+    uint256 public s_subscriptionId;
+    address public vrfCoordinator = 0x9DdfaCa8183c41ad55329BdeeD9F6A8d53168B1B;
+    bytes32 public s_keyHash =
+        0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae;
+    uint32 public callbackGasLimit = 40000;
+    uint16 public requestConfirmations = 3;
+    uint32 public numWords = 1;
+
+    mapping(uint256 => address) private s_rollers;
+    mapping(address => uint256) private s_results;
+
     event GameStarted(uint256 startBlock, uint256 endBlock);
     event PlayerJoined(address player, uint256 stake);
     event GameEnded(address player, uint256 payout);
     event DiceRolled(address player, uint8[4] diceRolls, uint8 score);
     event DepositReceived(address from, uint256 amount);
 
-    constructor() {
+    constructor(uint256 subscriptionId) VRFConsumerBaseV2Plus(vrfCoordinator) {
         dealer = msg.sender;
+        s_subscriptionId = subscriptionId;
     }
 
     modifier onlyDealer() {
@@ -55,8 +72,6 @@ contract DiceGame {
         require(_feePercent < 100, "Fee percent must be less than 100");
         dealerFeePercent = _feePercent;
     }
-
-
 
     // Allows anyone to start the game
     function startGame() notState(State.Started, "Game has already started.") external {
@@ -116,39 +131,38 @@ contract DiceGame {
 
     // Generate dice roll results for a player
     function rollDiceFor(address playerAddress) internal {
-        _rollDiceFor(playerAddress, 0); // Start recursion with counter at 0
+        uint256 requestId = requestRandomness(playerAddress);
+        s_rollers[requestId] = playerAddress;
+        s_results[playerAddress] = ROLL_IN_PROGRESS;
     }
-    function _rollDiceFor(address playerAddress, uint8 counter) internal {
-        // Increment the recursion counter
-        counter++;
 
+    function requestRandomness(address roller) internal returns (uint256 requestId) {
+        requestId = s_vrfCoordinator.requestRandomWords(
+            VRFV2PlusClient.RandomWordsRequest({
+                keyHash: s_keyHash,
+                subId: s_subscriptionId,
+                requestConfirmations: requestConfirmations,
+                callbackGasLimit: callbackGasLimit,
+                numWords: numWords,
+                extraArgs: VRFV2PlusClient._argsToBytes(
+                    VRFV2PlusClient.ExtraArgsV1({nativePayment: false})
+                )
+            })
+        );
+        s_rollers[requestId] = roller;
+        s_results[roller] = ROLL_IN_PROGRESS;
+    }
+
+    function fulfillRandomWords(uint256 requestId, uint256[] calldata randomWords) internal override {
         uint8[4] memory diceRolls;
-        // randomly generate dice rolls for the player
         for (uint8 i = 0; i < diceRolls.length; i++) {
-            diceRolls[i] = uint8(
-                (uint256(
-                    keccak256(
-                        abi.encodePacked(
-                            block.timestamp,
-                            playerAddress,
-                            i,
-                            counter
-                        )
-                    )
-                ) % 6) + 1
-            );
+            diceRolls[i] = uint8((randomWords[0] % 6) + 1);
         }
         uint8 score = calculateScore(diceRolls);
-        // if score is 0, re-roll the dices
-        if (score == 0) {
-            players[playerAddress].diceHistory.push(diceRolls);
-            emit DiceRolled(playerAddress, diceRolls, score);
-            _rollDiceFor(playerAddress, counter); // Recursive call with incremented counter
-        } else {
-            players[playerAddress].score = score;
-            players[playerAddress].diceRolls = diceRolls;
-            emit DiceRolled(playerAddress, diceRolls, score);
-        }
+        address roller = s_rollers[requestId];
+        players[roller].score = score;
+        players[roller].diceRolls = diceRolls;
+        emit DiceRolled(roller, diceRolls, score);
     }
 
     // End the game, determine the winner and finalize payout
